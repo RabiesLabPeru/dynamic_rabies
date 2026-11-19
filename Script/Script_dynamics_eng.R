@@ -4,57 +4,68 @@
 # Library
 library(tidyverse)
 
-# calling database
-setwd("/Users/pmacs/Desktop/Envío Paper Dinanica/Bases")
+# GitHub repository
+base_url <- "https://raw.githubusercontent.com/RabiesLabPeru/dynamic_rabies/main/Data/"
 
-# Loading dataset - 2016
-dogs <- read.csv("dogs16_data.csv", sep = ";")
-houses <- read.csv("houses16_data.csv", sep = ";")
+# Function to load datasets
+  load_data <- function(filename) {
+  url <- paste0(base_url, filename, ".csv")
+  df <- read.delim(
+    url,
+    sep = ";",
+    header = TRUE,
+    stringsAsFactors = FALSE,
+    check.names = FALSE,
+    fileEncoding = "UTF-8",
+    row.names = NULL)
+  
+  # Remove original row index
+  if ("Unnamed: 0" %in% names(df)) {
+    df <- df[, names(df) != "Unnamed: 0"]}
+  return(df)}
 
-# Loading dataset - Cohort
-dogs_cohort <- read.csv("dogs_cohort.csv", sep = ";")
-houses_cohort <- read.csv("houses_cohort.csv", sep = ";")
-
-# Validate identifiers in the initial datasets
-check_unicode(dogs, "UNICODE")
-check_unicode(houses, "UNICODE")
-check_unicode(dogs_cohort, "UNICODE")
-check_unicode(houses_cohort, "UNICODE")
-
-# Periurban
-houses_p<-houses_cohort[houses_cohort$TYPE_L=="periurban",] #212
-
-# Urban
-houses_u<-houses_cohort[houses_cohort$TYPE_L=="urban",] #673
-# Identify cohort Houses
-cohort_ids <- houses_cohort$UNICODE
-
-# Select dogs - 2016
-dogs16 <- dogs_cohort %>%
-  filter(UNICODE %in% cohort_ids, ESTADO == "Seguimiento" | is.na(ESTADO))
-
-# Dogs of 2017
-dogs17 <- dogs_cohort %>%
-  filter(!is.na(ESTADO), SIGUE_EN_CASA17 == "Si" | ESTADO == "Nuevo",
-         UNICODE %in% cohort_ids)
-
-# Separate by area
-dogs16_area <- split(dogs16, dogs16$TYPE_L)
-dogs17_area <- split(dogs17, dogs17$TYPE_L)
-
-# By group
-dogs16_p <- dogs16_area$periurban
-dogs16_u <- dogs16_area$urban
-dogs17_p <- dogs17_area$periurban
-dogs17_u <- dogs17_area$urban
-
-# By area
-# Periurban
+  # Loading dataset - 2016
+  dogs <- load_data("dogs16_data")
+  houses <- load_data("houses16_data")
+  
+  # Loading dataset - Cohort
+  dogs_cohort <- load_data("dogs_cohort")
+  houses_cohort <- load_data("houses_cohort")
+  
+  # Periurban
   houses_p<-houses_cohort[houses_cohort$TYPE_L=="periurban",] #212
   
-# Urban
+  # Urban
   houses_u<-houses_cohort[houses_cohort$TYPE_L=="urban",] #673
+  # Identify cohort Houses
+  cohort_ids <- houses_cohort$UNICODE
   
+  # Select dogs - 2016
+  dogs16 <- dogs_cohort %>%
+    filter(UNICODE %in% cohort_ids, ESTADO == "Seguimiento" | is.na(ESTADO))
+  
+  # Dogs of 2017
+  dogs17 <- dogs_cohort %>%
+    filter(!is.na(ESTADO), SIGUE_EN_CASA17 == "Si" | ESTADO == "Nuevo",
+           UNICODE %in% cohort_ids)
+  
+  # Separate by area
+  dogs16_area <- split(dogs16, dogs16$TYPE_L)
+  dogs17_area <- split(dogs17, dogs17$TYPE_L)
+  
+  # By group
+  dogs16_p <- dogs16_area$periurban
+  dogs16_u <- dogs16_area$urban
+  dogs17_p <- dogs17_area$periurban
+  dogs17_u <- dogs17_area$urban
+  
+  # By area
+  # Periurban
+    houses_p<-houses_cohort[houses_cohort$TYPE_L=="periurban",] #212
+    
+  # Urban
+    houses_u<-houses_cohort[houses_cohort$TYPE_L=="urban",] #673
+    
 #------------------------------------------------------------------------------#
 # Table 1.
   #### Proportion of houses with dogs ---- 
@@ -408,8 +419,7 @@ dogs17_u <- dogs17_area$urban
 #------------------------------------------------------------------------------#
 # Table 4. Dogs exiting the cohort 
   # Loading data
-  dogs <- read.csv("dogs_exit.csv", sep = ";")
-  check_unicode(dogs, "UNICODE_PERRO", composite = TRUE)
+  dogs <- load_data("dogs_exit")
   
   # Selecting dogs that exited the cohort
   dogs <- dogs[!is.na(dogs$ESTADO) & dogs$ESTADO == "Seguimiento" &
@@ -554,8 +564,7 @@ dogs17_u <- dogs17_area$urban
 #------------------------------------------------------------------------------#
 # Table 5. Transient dogs
   # Reading data from the unified dog database
-  PERRO_TEMPORAL_2017<-read.csv("dogs_temporal.csv", sep = ";")
-  check_unicode(PERRO_TEMPORAL_2017, "UNICODE_PERRO_TEMPORAL")
+  PERRO_TEMPORAL_2017<-load_data("dogs_temporal")
   
   # Classifying transient dogs using the existing area variable
   TEMPORAL_URBANO <- PERRO_TEMPORAL_2017[
