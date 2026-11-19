@@ -15,6 +15,12 @@ houses <- read.csv("houses16_data.csv", sep = ";")
 dogs_cohort <- read.csv("dogs_cohort.csv", sep = ";")
 houses_cohort <- read.csv("houses_cohort.csv", sep = ";")
 
+# Validate identifiers in the initial datasets
+check_unicode(dogs, "UNICODE")
+check_unicode(houses, "UNICODE")
+check_unicode(dogs_cohort, "UNICODE")
+check_unicode(houses_cohort, "UNICODE")
+
 # Periurban
 houses_p<-houses_cohort[houses_cohort$TYPE_L=="periurban",] #212
 
@@ -403,6 +409,7 @@ dogs17_u <- dogs17_area$urban
 # Table 4. Dogs exiting the cohort 
   # Loading data
   dogs <- read.csv("dogs_exit.csv", sep = ";")
+  check_unicode(dogs, "UNICODE_PERRO", composite = TRUE)
   
   # Selecting dogs that exited the cohort
   dogs <- dogs[!is.na(dogs$ESTADO) & dogs$ESTADO == "Seguimiento" &
@@ -548,14 +555,14 @@ dogs17_u <- dogs17_area$urban
 # Table 5. Transient dogs
   # Reading data from the unified dog database
   PERRO_TEMPORAL_2017<-read.csv("dogs_temporal.csv", sep = ";")
+  check_unicode(PERRO_TEMPORAL_2017, "UNICODE_PERRO_TEMPORAL")
   
-  # Identifying urban localities
-  localidades_urbanas <- c("1.1.77.", "1.1.78.", "1.1.81.", "1.1.83.")
-  
-  # Classifying transient dogs
+  # Classifying transient dogs using the existing area variable
   TEMPORAL_URBANO <- PERRO_TEMPORAL_2017[
-    grepl(paste(localidades_urbanas, collapse = "|"),
-      PERRO_TEMPORAL_2017$UNICODE_PERRO_TEMPORAL), ]
+    PERRO_TEMPORAL_2017$TYPE_L == "urban", ]
+
+  TEMPORAL_PERI <- PERRO_TEMPORAL_2017[
+    PERRO_TEMPORAL_2017$TYPE_L == "periurban", ]
   
   TEMPORAL_PERI <- PERRO_TEMPORAL_2017[
     !grepl(paste(localidades_urbanas, collapse = "|"),
